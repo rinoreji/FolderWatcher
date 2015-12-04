@@ -49,9 +49,8 @@ namespace FolderWatcher.ViewModels
         public void RefreshFileList()
         {
             var _searchOption = IncludeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            
-            _fileListService = new FileListService(FolderPath, FileFilter, _searchOption);
 
+            _fileListService = new FileListService(FolderPath, FileFilter, _searchOption);
             UpdateFileList(_fileListService.GetFileList());
         }
 
@@ -63,10 +62,10 @@ namespace FolderWatcher.ViewModels
                 FileList.Remove(file);
             }
 
-            var newFiles = newList.Except(FileList);
-            foreach (var file in newFiles)
+            foreach (var file in newList)
             {
-                FileList.Add(file);
+                if (!FileList.Any(f => f.FullName == file.FullName))
+                    FileList.Add(file);
             }
         }
     }

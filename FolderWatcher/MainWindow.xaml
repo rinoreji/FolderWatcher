@@ -3,7 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Watcher" Height="350" Width="525">
     <Grid>
-        <ListView ItemsSource="{Binding Path=FileListVM.FileList}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Path : "/>
+            <TextBox Text="{Binding Path=FileListVM.FolderPath, UpdateSourceTrigger=PropertyChanged}" Width="200"/>
+            <TextBlock Text="Filter : "/>
+            <TextBox Width="100" Text="{Binding Path=FileListVM.FileFilter}"/>
+        </StackPanel>
+        <ListView Grid.Row="1" ItemsSource="{Binding Path=FileListVM.FileList}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
