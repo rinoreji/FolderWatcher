@@ -1,5 +1,6 @@
 ﻿using FolderWatcher.Model;
 using SharpHelpers.ExtensionMethods;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -12,14 +13,14 @@ namespace FolderWatcher.ViewModels
         FileListService _fileListService;
         public FileListViewModel()
         {
-            FileList = new ObservableCollection<FileInfo>();
+            FileList = new ObservableCollection<FileInfoViewModel>();
         }
 
-        private ObservableCollection<FileInfo> _fileList;
-        public ObservableCollection<FileInfo> FileList
+        private ObservableCollection<FileInfoViewModel> _fileList;
+        public ObservableCollection<FileInfoViewModel> FileList
         {
             get { return _fileList; }
-            private set { _fileList = value; RaizePropertyChanged("Files"); }
+            private set { _fileList = value; RaizePropertyChanged("FilesList"); }
         }
 
         private string _path;
@@ -46,6 +47,21 @@ namespace FolderWatcher.ViewModels
             set { _includeSubdirectories = value; RaizePropertyChanged("IncludeSubdirectories"); }
         }
 
+        public void UpdateFileStatus(string filePath, string changeStatus, bool isRefreshNeeded = false)
+        {
+            if (isRefreshNeeded)
+                RefreshFileList();
+
+            if (!FileList.Any(f => f.FullName == filePath))
+                InvokeOnDispatcherThread(() => FileList.Add(new FileInfoViewModel(new FileInfo(filePath))));
+            else
+            {
+                var info = FileList.First(f => f.FullName == filePath);
+                info.ChangeStatus = changeStatus;
+                info.StatusUpdatedOn = DateTime.Now;
+            }
+        }
+
         public void RefreshFileList()
         {
             var _searchOption = IncludeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
@@ -56,17 +72,22 @@ namespace FolderWatcher.ViewModels
 
         private void UpdateFileList(List<FileInfo> newList)
         {
-            var filesToRemove = FileList.Where(f => !newList.Any(nf => nf.FullName == f.FullName));
+            var filesToRemove = FileList.Where(f => !newList.Any(nf => nf.FullName == f.FullName)).ToList();
             foreach (var file in filesToRemove)
             {
-                FileList.Remove(file);
+                InvokeOnDispatcherThread(()=> FileList.Remove(file));
             }
 
             foreach (var file in newList)
             {
                 if (!FileList.Any(f => f.FullName == file.FullName))
-                    FileList.Add(file);
+                    InvokeOnDispatcherThread(() => FileList.Add(new FileInfoViewModel(file)));
             }
+        }
+
+        void InvokeOnDispatcherThread(Action action)
+        {
+            App.Current.Dispatcher.Invoke(action);
         }
     }
 }

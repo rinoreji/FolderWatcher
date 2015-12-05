@@ -12,15 +12,25 @@
             <TextBox Text="{Binding Path=FileListVM.FolderPath, UpdateSourceTrigger=PropertyChanged}" Width="200"/>
             <TextBlock Text="Filter : "/>
             <TextBox Width="100" Text="{Binding Path=FileListVM.FileFilter}"/>
+            <CheckBox IsChecked="{Binding Path=FileListVM.IncludeSubdirectories}">Include Subdirectories in search</CheckBox>
         </StackPanel>
         <ListView Grid.Row="1" ItemsSource="{Binding Path=FileListVM.FileList}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Name}">
+                        <GridViewColumnHeader>File Name</GridViewColumnHeader>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding ChangeStatus}">
+                        <GridViewColumnHeader>Status</GridViewColumnHeader>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding StatusUpdatedOn}">
+                        <GridViewColumnHeader>Last Updated</GridViewColumnHeader>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding FullName}">
+                        <GridViewColumnHeader>Path</GridViewColumnHeader>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
         </ListView>
     </Grid>
 </Window>

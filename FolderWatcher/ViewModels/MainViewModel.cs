@@ -1,37 +1,31 @@
 ﻿
-
+using SharpHelpers.ExtensionMethods;
 using System;
 using System.Timers;
+
 namespace FolderWatcher.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
         public FileListViewModel FileListVM { get; set; }
-        Timer timer = new Timer();
+        WatcherService _watcher;
 
         public MainViewModel()
         {
-            timer.Interval = 1000;
-            timer.Elapsed += timer_Elapsed;
-            timer.Start();
             FileListVM = new FileListViewModel();
-            FileListVM.FolderPath = @"G:\Share4Team\RRc";
-            FileListVM.IncludeSubdirectories = true;
-        }
+            FileListVM.FolderPath = "DefaultPath".FromAppSettings("%temp%").ExpandPath();
+            FileListVM.FileFilter = "DefaultFilter".FromAppSettings("*.*");
+            FileListVM.IncludeSubdirectories = "IncludeSubdirectorySearch".FromAppSettings(false);
 
-        void timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            App.Current.Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    FileListVM.RefreshFileList();
-                }
-                catch (Exception exp)
-                {
-                    Console.WriteLine(exp.Message);
-                }
-            });
+            _watcher = new WatcherService(FileListVM.FolderPath, FileListVM.FileFilter, FileListVM.IncludeSubdirectories);
+         
+            _watcher.Changed = (fPath) => FileListVM.UpdateFileStatus(fPath, "Changed");
+            _watcher.Created = (fPath) => FileListVM.UpdateFileStatus(fPath, "Created");
+            _watcher.Deleted = (fPath) => FileListVM.UpdateFileStatus(fPath, "Deleted", isRefreshNeeded:true);
+            _watcher.Renamed = (oPath,nPath) => FileListVM.UpdateFileStatus(nPath, "Renamed", isRefreshNeeded:true);
+
+            FileListVM.RefreshFileList();
+            _watcher.Run();
         }
     }
 }
